@@ -1,4 +1,7 @@
 import sqlite3
+import string
+from random import random, randint
+
 from fpdf import FPDF
 
 class User:
@@ -119,13 +122,41 @@ class Ticket:
         self.user = user
 
     def to_pdf(self):
-        pdf = FPDF()
-        pass
+
+        pdf = FPDF(orientation='P', unit='pt', format='A4')
+        pdf.add_page()
+
+        pdf.set_font(family='Times', style='B', size=24)
+        pdf.cell(w=0, h=80, txt='Your Digital Ticket', border=1, ln=1, align="C")
+
+        pdf.set_font(family='Times', style='B', size=14)
+        pdf.cell(w=100, h=25, txt='Name: ', border=1)
+        pdf.set_font(family='Times', style='', size=12)
+        pdf.cell(w=0, h=25, txt=self.user.name, border=1, ln=1)
+        pdf.cell(w=0, h=5, txt='', border=0, ln=1)
+
+        pdf.set_font(family='Times', style='B', size=14)
+        pdf.cell(w=100, h=25, txt='Ticket ID: ', border=1)
+        pdf.set_font(family='Times', style='', size=12)
+        pdf.cell(w=0, h=25, txt=str(randint(1, 1000)), border=1, ln=1)
+        pdf.cell(w=0, h=5, txt='', border=0, ln=1)
+
+        pdf.set_font(family='Times', style='B', size=14)
+        pdf.cell(w=100, h=25, txt='Price: ', border=1)
+        pdf.set_font(family='Times', style='', size=12)
+        pdf.cell(w=0, h=25, txt=str(self.price), border=1, ln=1)
+        pdf.cell(w=0, h=5, txt='', border=0, ln=1)
+
+        pdf.set_font(family='Times', style='B', size=14)
+        pdf.cell(w=100, h=25, txt='Seat Number: ', border=1)
+        pdf.set_font(family='Times', style='', size=12)
+        pdf.cell(w=0, h=25, txt=str(self.seat_number), border=1, ln=1)
+        pdf.cell(w=0, h=5, txt='', border=0, ln=1)
+
+        pdf.output('Ticket.pdf')
 
 
-
-#
-a = Seat('A3')
+a = Seat('B3')
 
 print(a.get_price())
 print(a.is_free())
