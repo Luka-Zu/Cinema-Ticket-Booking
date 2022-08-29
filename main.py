@@ -1,12 +1,22 @@
 import sqlite3
-
+from fpdf import FPDF
 
 class User:
     def __init__(self, name):
         self.name = name
 
     def buy(self, seat, card):
-        pass
+        fee = seat.get_price()
+        if card.validate(fee):
+            if seat.is_free():
+                card.pay(fee)
+                print("SUCCESS")
+                ticket = Ticket(self, fee, seat.get_seat())
+                ticket.to_pdf()
+            seat.occupy()
+
+
+
 
 
 class Seat:
@@ -26,6 +36,8 @@ class Seat:
 
         connection_with_database.close()
 
+    def get_seat(self):
+        return self.__seat_id
     def get_price(self):
         return self.__price
 
@@ -51,38 +63,54 @@ class Card:
     database = "banking.db"
 
     def __init__(self, type, number, cvc, holder):
-        self.holder = holder
-        self.cvc = cvc
-        self.number = number
-        self.type = type
+        self.__holder = holder
+        self.__cvc = cvc
+        self.__number = number
+        self.__type = type
 
     def validate(self, price):
         connection_with_database = sqlite3.connect(self.database)
         cursor = connection_with_database.cursor()
         cursor.execute(f"""
-        SELECT * FROM "Card" WHERE number={self.number}
+        SELECT * FROM "Card" WHERE number={self.__number}
         """)
         data = cursor.fetchall()[0]
-        print(data)
+        # print(data)
         actual_type = data[0]
         actual_cvc = data[2]
         actual_holder = data[3]
         amount = data[4]
         is_valid = True
 
-        if actual_type != self.type:
+        if actual_type != self.__type:
             is_valid = False
             print("Enter correct type for card")
-        if actual_cvc != self.cvc:
+        if actual_cvc != self.__cvc:
             is_valid = False
             print("Enter correct cvc")
-        if actual_holder != self.holder:
+        if actual_holder != self.__holder:
             is_valid = False
             print("Enter correct holder name")
         if amount <= price:
             is_valid = False
             print("Not enough money on account")
+        connection_with_database.close()
         return is_valid
+
+    def pay(self, price):
+        connection_with_database = sqlite3.connect(self.database)
+        cursor = connection_with_database.cursor()
+        cursor.execute(f"""
+                SELECT * FROM "Card" WHERE number={self.__number}
+                """)
+        amount = cursor.fetchall()[0][4]
+        new_amount = amount - price
+        connection_with_database.execute(f"""
+                                UPDATE "Card" SET "balance"={new_amount} WHERE number='{self.__number}'    
+                                """)
+        connection_with_database.commit()
+        connection_with_database.close()
+
 class Ticket:
 
     def __init__(self, user, price, seat_number):
@@ -91,15 +119,19 @@ class Ticket:
         self.user = user
 
     def to_pdf(self):
+        pdf = FPDF()
         pass
 
 
-#
-# a = Seat('A1')
-#
-# print(a.get_price())
-# print(a.is_free())
-# print(a.occupy())
 
-# b = Card("Master Card", 23456789, '234', "Marry Smith")
-# print(b.validate(100))
+#
+a = Seat('A3')
+
+print(a.get_price())
+print(a.is_free())
+
+b = Card("Master Card", 23456789, '234', "Marry Smith")
+print(b.validate(100))
+
+u = User("jemali")
+u.buy(a,b)
