@@ -19,10 +19,10 @@ class Seat:
         cursor.execute(f"""
         SELECT  * FROM "Seat" WHERE seat_id = '{self.__seat_id}'
         """)
-        result = cursor.fetchall()
+        result = cursor.fetchall()[0]
 
-        self.__price = result[0][2]
-        self.__is_available = (result[0][1] == 0)
+        self.__price = result[2]
+        self.__is_available = (result[1] == 0)
 
         connection_with_database.close()
 
@@ -47,8 +47,6 @@ class Seat:
             return False
 
 
-
-
 class Card:
     database = "banking.db"
 
@@ -59,9 +57,32 @@ class Card:
         self.type = type
 
     def validate(self, price):
-        pass
+        connection_with_database = sqlite3.connect(self.database)
+        cursor = connection_with_database.cursor()
+        cursor.execute(f"""
+        SELECT * FROM "Card" WHERE number={self.number}
+        """)
+        data = cursor.fetchall()[0]
+        print(data)
+        actual_type = data[0]
+        actual_cvc = data[2]
+        actual_holder = data[3]
+        amount = data[4]
+        is_valid = True
 
-
+        if actual_type != self.type:
+            is_valid = False
+            print("Enter correct type for card")
+        if actual_cvc != self.cvc:
+            is_valid = False
+            print("Enter correct cvc")
+        if actual_holder != self.holder:
+            is_valid = False
+            print("Enter correct holder name")
+        if amount <= price:
+            is_valid = False
+            print("Not enough money on account")
+        return is_valid
 class Ticket:
 
     def __init__(self, user, price, seat_number):
@@ -73,9 +94,12 @@ class Ticket:
         pass
 
 
-a = Seat('A1')
+#
+# a = Seat('A1')
+#
+# print(a.get_price())
+# print(a.is_free())
+# print(a.occupy())
 
-print(a.get_price())
-print(a.is_free())
-print(a.occupy())
-
+# b = Card("Master Card", 23456789, '234', "Marry Smith")
+# print(b.validate(100))
